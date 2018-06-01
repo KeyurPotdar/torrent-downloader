@@ -39,22 +39,25 @@ def format_url(name, season=None, episode=None):
 
 
 def download_torrent(link, root=None):
-    if root:
-        root.destroy()
-    r = requests.get(WEBSITE_NAME+link, headers=headers)
-    soup = BeautifulSoup(r.text, 'lxml')
-    magnet = soup.find('a', {'title': 'Get this torrent'}).get('href')
+    try:
+        if root:
+            root.destroy()
+        r = requests.get(WEBSITE_NAME+link, headers=headers)
+        soup = BeautifulSoup(r.text, 'lxml')
+        magnet = soup.find('a', {'title': 'Get this torrent'}).get('href')
 
-    if sys.platform.startswith('linux'):
-        subprocess.Popen(['xdg-open', magnet], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    elif sys.platform.startswith('win32'):
-        os.startfile(magnet)
-    elif sys.platform.startswith('cygwin'):
-        os.startfile(magnet)
-    elif sys.platform.startswith('darwin'):
-        subprocess.Popen(['open', magnet], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    else:
-        subprocess.Popen(['xdg-open', magnet], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if sys.platform.startswith('linux'):
+            subprocess.Popen(['xdg-open', magnet], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        elif sys.platform.startswith('win32'):
+            os.startfile(magnet)
+        elif sys.platform.startswith('cygwin'):
+            os.startfile(magnet)
+        elif sys.platform.startswith('darwin'):
+            subprocess.Popen(['open', magnet], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        else:
+            subprocess.Popen(['xdg-open', magnet], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except Exception as e:
+        logging.error(str(e), exc_info=True)
 
 
 def show_torrent_links(url):
@@ -71,7 +74,7 @@ def show_torrent_links(url):
         return
 
     root = tk.Tk()
-    root.title('PirateBay Torrents')
+    root.title(url)
     for col, label in enumerate(['Sr No', 'NAME', 'SE', 'LE', 'SIZE', 'UPLOADED', 'LINK'], 1):
         tk.Label(root, text=label).grid(column=col, row=1, sticky=tk.W, padx=10, pady=10)
 
@@ -92,53 +95,57 @@ def show_torrent_links(url):
     root.mainloop()
 
 
-root = tk.Tk()
-root.title('PirateBay Torrents')
+def main():
+    root = tk.Tk()
+    root.title('PirateBay Torrents')
 
-tk.Label(root, text='Name: ', anchor='w').grid(row=0, column=0, padx=10, pady=(10, 4), sticky='w')
-tk.Label(root, text='Season: ', anchor='w').grid(row=1, column=0, padx=10, pady=4, sticky='w')
-tk.Label(root, text='Episode: ', anchor='w').grid(row=2, column=0, padx=10, pady=4, sticky='w')
+    tk.Label(root, text='Name: ', anchor='w').grid(row=0, column=0, padx=10, pady=(10, 4), sticky='w')
+    tk.Label(root, text='Season: ', anchor='w').grid(row=1, column=0, padx=10, pady=4, sticky='w')
+    tk.Label(root, text='Episode: ', anchor='w').grid(row=2, column=0, padx=10, pady=4, sticky='w')
 
-name = tk.Entry(root, width=30)
-name.grid(row=0, column=1, padx=10, pady=(10, 4))
-name.focus()
-season = tk.Entry(root, width=30)
-season.grid(row=1, column=1, padx=10, pady=4)
-episode = tk.Entry(root, width=30)
-episode.grid(row=2, column=1, padx=10, pady=4)
+    name = tk.Entry(root, width=30)
+    name.grid(row=0, column=1, padx=10, pady=(10, 4))
+    name.focus()
+    season = tk.Entry(root, width=30)
+    season.grid(row=1, column=1, padx=10, pady=4)
+    episode = tk.Entry(root, width=30)
+    episode.grid(row=2, column=1, padx=10, pady=4)
+
+    # noinspection PyUnusedLocal
+    def button1_click(event=None):
+        n = name.get().replace("'s", 's')
+        try:
+            s = int(season.get())
+            e = int(episode.get())
+        except ValueError:
+            return
+        if all(x for x in (n, s, e)):
+            try:
+                show_torrent_links(format_url(n, s, e))
+            except Exception as e:
+                logging.error(str(e), exc_info=True)
+
+    name.bind('<Return>', button1_click)
+    season.bind('<Return>', button1_click)
+    episode.bind('<Return>', button1_click)
+
+    tk.Button(root, text='Get Torrents', command=button1_click).grid(row=3, column=1, padx=10, pady=(4, 10), sticky='w')
+
+    tk.Label(root, text='Search: ', anchor='w').grid(row=4, column=0, padx=10, pady=4, sticky='w')
+    search = tk.Entry(root, width=30)
+    search.grid(row=4, column=1, padx=10, pady=4)
+
+    # noinspection PyUnusedLocal
+    def button2_click(event=None):
+        s = search.get()
+        if s:
+            show_torrent_links(format_url(s))
+
+    search.bind('<Return>', button2_click)
+    tk.Button(root, text='Get Torrents', command=button2_click).grid(row=5, column=1, padx=10, pady=(4, 10), sticky='w')
+
+    root.mainloop()
 
 
-# noinspection PyUnusedLocal
-def button1_click(event=None):
-    n = name.get()
-    try:
-        s = int(season.get())
-        e = int(episode.get())
-    except ValueError:
-        return
-    if all(x for x in (n, s, e)):
-        show_torrent_links(format_url(n, s, e))
-
-
-name.bind('<Return>', button1_click)
-season.bind('<Return>', button1_click)
-episode.bind('<Return>', button1_click)
-
-tk.Button(root, text='Get Torrents', command=button1_click).grid(row=3, column=1, padx=10, pady=(4, 10), sticky='w')
-
-tk.Label(root, text='Search: ', anchor='w').grid(row=4, column=0, padx=10, pady=4, sticky='w')
-search = tk.Entry(root, width=30)
-search.grid(row=4, column=1, padx=10, pady=4)
-
-
-# noinspection PyUnusedLocal
-def button2_click(event=None):
-    s = search.get()
-    if s:
-        show_torrent_links(format_url(s))
-
-
-search.bind('<Return>', button2_click)
-tk.Button(root, text='Get Torrents', command=button2_click).grid(row=5, column=1, padx=10, pady=(4, 10), sticky='w')
-
-root.mainloop()
+if __name__ == '__main__':
+    main()
