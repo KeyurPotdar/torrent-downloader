@@ -79,7 +79,7 @@ def show_torrent_links(url):
         tk.Label(root, text=label).grid(column=col, row=1, sticky=tk.W, padx=10, pady=10)
 
     soup = BeautifulSoup(r.text, 'lxml')
-    for row, tr in enumerate(soup.select('#searchResult tr')[1:15]):
+    for row, tr in enumerate(soup.select('#searchResult tr')[1:15], 1):
         det_link = tr.find('a', {'class': 'detLink'})
         name = det_link.text
         href = det_link.get('href')
@@ -88,9 +88,9 @@ def show_torrent_links(url):
         uploaded = uled[9:]
         size = sz[5:]
         for col, label in enumerate([row, name, seeders, leechers, size, uploaded], 1):
-            tk.Label(root, text=label).grid(column=col, row=row+2, sticky=tk.W, padx=5, pady=5)
+            tk.Label(root, text=label).grid(column=col, row=row+1, sticky=tk.W, padx=5, pady=5)
         tk.Button(root, text='Download', command=lambda c=href: download_torrent(c, root))\
-            .grid(column=7, row=row+2, sticky=tk.W, padx=10, pady=5)
+            .grid(column=7, row=row+1, sticky=tk.W, padx=10, pady=5)
 
     root.mainloop()
 
