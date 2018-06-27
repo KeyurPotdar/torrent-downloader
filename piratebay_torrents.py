@@ -1,10 +1,10 @@
-import os
-import sys
-import subprocess
 import logging
+import os
 import requests
-from bs4 import BeautifulSoup
+import subprocess
+import sys
 import tkinter as tk
+from bs4 import BeautifulSoup
 
 WEBSITE_NAME = 'https://piratepirate.eu'
 WEBSITE_PREFIX = '/s/?q='
@@ -12,7 +12,7 @@ WEBSITE_SPACE = '+'
 WEBSITE_SUFFIX = '&page=0&orderby=99'
 
 LOGFILE_NAME = os.path.splitext(os.path.basename(__file__))[0] + '.log'
-logging.basicConfig(filename=LOGFILE_NAME, level=logging.DEBUG, format='\n%(asctime)s \n%(message)s')
+logging.basicConfig(filename=LOGFILE_NAME, level=logging.DEBUG, format='%(asctime)s %(message)s')
 
 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 '
                          '(KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36'}
