@@ -1,10 +1,12 @@
 import logging
 import os
+import re
 import requests
 import subprocess
 import sys
 import tkinter as tk
 from bs4 import BeautifulSoup
+from multiprocessing import Process
 
 WEBSITE_NAME = 'https://piratepirate.eu'
 WEBSITE_PREFIX = '/s/?q='
@@ -84,9 +86,8 @@ def show_torrent_links(url):
         name = det_link.text
         href = det_link.get('href')
         seeders, leechers = [x.text for x in tr.find_all('td', {'align': 'right'})]
-        uled, sz, _ = tr.find('font', {'class': 'detDesc'}).text.replace('&nbsp;', '').split(', ')
-        uploaded = uled[9:]
-        size = sz[5:]
+        info_regex = re.compile(r'Uploaded (.*), Size (.*), ULed by (.*)')
+        uploaded, size, uploader = info_regex.search(tr.find('font', {'class': 'detDesc'}).text).groups()
         for col, label in enumerate([row, name, seeders, leechers, size, uploaded], 1):
             tk.Label(root, text=label).grid(column=col, row=row+1, sticky=tk.W, padx=5, pady=5)
         tk.Button(root, text='Download', command=lambda c=href: download_torrent(c, root))\
@@ -111,29 +112,49 @@ def main():
     episode = tk.Entry(root, width=30)
     episode.grid(row=2, column=1, padx=10, pady=4)
 
+    tk.Label(root, text='Separate multiple episodes with\n'
+                        'commas(,). Use hyphen(-) to \n'
+                        'specify a range of episodes.\n'
+                        'Example: 1-5, 6, 8-12', justify=tk.LEFT).grid(row=3, column=1, padx=10, sticky='w')
+
     # noinspection PyUnusedLocal
     def button1_click(event=None):
         n = name.get().replace("'s", 's')
+        if not n or not n.strip():
+            return
         try:
             s = int(season.get())
-            e = int(episode.get())
+            e = episode.get().split(',')
+            for x in e:
+                x = x.strip()
+                if re.match(r'\d+-\d+', x):
+                    f, t = map(int, re.search('(\d+)-(\d+)', x).groups())
+                    for ep in range(f, t+1):
+                        try:
+                            url = format_url(n, s, ep)
+                            Process(target=show_torrent_links, args=(url,)).start()
+                        except Exception as e:
+                            logging.error(str(e), exc_info=True)
+                else:
+                    try:
+                        url = format_url(n, s, int(x))
+                        Process(target=show_torrent_links, args=(url,)).start()
+                    except ValueError:
+                        continue
+                    except Exception as e:
+                        logging.error(str(e), exc_info=True)
         except ValueError:
             return
-        if all(x for x in (n, s, e)):
-            try:
-                show_torrent_links(format_url(n, s, e))
-            except Exception as e:
-                logging.error(str(e), exc_info=True)
 
     name.bind('<Return>', button1_click)
     season.bind('<Return>', button1_click)
     episode.bind('<Return>', button1_click)
 
-    tk.Button(root, text='Get Torrents', command=button1_click).grid(row=3, column=1, padx=10, pady=(4, 10), sticky='w')
+    tk.Button(root, text='Get Torrents', command=button1_click).grid(row=4, column=1, padx=10, pady=(4, 10), sticky='w')
 
-    tk.Label(root, text='Search: ', anchor='w').grid(row=4, column=0, padx=10, pady=4, sticky='w')
+    tk.Label(root, text='Search: ', anchor='w').grid(row=5, column=0, padx=10, pady=4, sticky='w')
     search = tk.Entry(root, width=30)
-    search.grid(row=4, column=1, padx=10, pady=4)
+    search.grid(row=5, column=1, padx=10, pady=4)
 
     # noinspection PyUnusedLocal
     def button2_click(event=None):
@@ -142,7 +163,7 @@ def main():
             show_torrent_links(format_url(s))
 
     search.bind('<Return>', button2_click)
-    tk.Button(root, text='Get Torrents', command=button2_click).grid(row=5, column=1, padx=10, pady=(4, 10), sticky='w')
+    tk.Button(root, text='Get Torrents', command=button2_click).grid(row=6, column=1, padx=10, pady=(4, 10), sticky='w')
 
     root.mainloop()
 
