@@ -119,7 +119,7 @@ def main():
 
     # noinspection PyUnusedLocal
     def button1_click(event=None):
-        n = name.get().replace("'s", 's')
+        n = name.get().replace("'s", 's').strip()
         if not n or not n.strip():
             return
         try:
@@ -158,7 +158,7 @@ def main():
 
     # noinspection PyUnusedLocal
     def button2_click(event=None):
-        s = search.get()
+        s = search.get().strip()
         if s:
             show_torrent_links(format_url(s))
 
