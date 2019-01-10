@@ -38,8 +38,10 @@ def format_url(name, season=None, episode=None):
     Example:
     >>> format_url('the office', 4, 11)
     'https://bayhypertpb.be/s/?q=the+office+s04e11&page=0&orderby=99'
+    
     >>> format_url('the office', 's04e11')
     'https://bayhypertpb.be/s/?q=the+office+s04e11&page=0&orderby=99'
+    
     >>> format_url('the office s04e11')
     'https://bayhypertpb.be/s/?q=the+office+s04e11&page=0&orderby=99'
     """
