@@ -1,12 +1,13 @@
 import logging
 import os
 import re
-import requests
 import subprocess
 import sys
 import tkinter as tk
-from bs4 import BeautifulSoup
 from multiprocessing import Process
+
+import requests
+from bs4 import BeautifulSoup
 
 WEBSITE_NAME = 'https://bayhypertpb.be'
 WEBSITE_PREFIX = '/s/?q='
@@ -38,10 +39,10 @@ def format_url(name, season=None, episode=None):
     Example:
     >>> format_url('the office', 4, 11)
     'https://bayhypertpb.be/s/?q=the+office+s04e11&page=0&orderby=99'
-    
+
     >>> format_url('the office', 's04e11')
     'https://bayhypertpb.be/s/?q=the+office+s04e11&page=0&orderby=99'
-    
+
     >>> format_url('the office s04e11')
     'https://bayhypertpb.be/s/?q=the+office+s04e11&page=0&orderby=99'
     """
@@ -56,7 +57,7 @@ def format_url(name, season=None, episode=None):
 
 def download_torrent(link, root=None):
     """
-    Starts the torrent download. Requires any torrent application pre-installed (μTorrent, BitTorrent, etc).
+    Starts the torrent download. Requires any torrent application pre-installed (µTorrent, BitTorrent, etc).
     """
     try:
         if root:
